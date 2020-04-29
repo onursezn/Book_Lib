@@ -1,13 +1,11 @@
 
-from django.shortcuts import render
-from rest_framework import viewsets, generics
-from rest_framework.authtoken.models import Token
+from rest_framework import generics
 from rest_framework.response import Response
 from knox.auth import TokenAuthentication
 from knox.models import AuthToken
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import UserProfile
-from .serializers import UserSerializer, LoginSerializer, KnoxSerializer, RegisterSerializer
+from .serializers import UserSerializer, LoginSerializer, RegisterSerializer
  
 class UserListAPI(generics.ListAPIView):
 
