@@ -1,17 +1,13 @@
 from django.urls import path, include
-
-from knox.views import LogoutView
-
-from .views import UserListAPI, UserDetailAPI, LoginAPI, RegisterAPI
-
-from rest_framework import routers
-from django.contrib.auth import views as auth_views
-from django.contrib.auth import urls
+from .views import UserListAPI, UserDetailAPI, LoginAPI, RegisterAPI, PasswordChangeAPI
+from knox import views as knox_views
 
 urlpatterns = [
+    path('logout/', knox_views.LogoutView.as_view(), name = "knox_logout"),
+    path('users/', UserListAPI.as_view(), name = "users-list"),
+    path('users/<str:username>/', UserDetailAPI.as_view(), name = "users-detail"),
+    path('login/', LoginAPI.as_view(), name = "login"),
+    path('register/', RegisterAPI.as_view(), name = "register"),
+    path('password-change/', PasswordChangeAPI.as_view(), name = "password-change"),
     path('', include('django.contrib.auth.urls')),
-    path('users/', UserListAPI.as_view()),
-    path('users/<str:username>/', UserDetailAPI.as_view()),
-    path('login/', LoginAPI.as_view()),
-    path('register/', RegisterAPI.as_view()),
     ]
