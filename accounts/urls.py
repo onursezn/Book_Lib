@@ -10,4 +10,4 @@ urlpatterns = [
     path('register/', RegisterAPI.as_view(), name = "register"),
     path('password-change/', PasswordChangeAPI.as_view(), name = "password-change"),
     path('', include('django.contrib.auth.urls')),
-    ]
+

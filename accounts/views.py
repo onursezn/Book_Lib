@@ -1,6 +1,5 @@
 from django.contrib.auth import login
 #from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
 from knox.auth import TokenAuthentication
 from knox.models import AuthToken
 from rest_framework import generics, status
