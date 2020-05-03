@@ -17,7 +17,7 @@ class UserDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ('id', 'first_name', 'last_name', 'username', 'email',)
-        read_only_fields = ('email', )
+        read_only_fields = ('email', 'username')
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -79,3 +79,7 @@ class PasswordChangeSerializers(serializers.Serializer):
         user.save()
         return user
 
+
+#token serializer for email password reset endpoint
+class CustomTokenSerializer(serializers.Serializer):
+    token = serializers.CharField()

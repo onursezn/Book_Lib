@@ -9,5 +9,7 @@ urlpatterns = [
     path('login/', LoginAPI.as_view(), name = "login"),
     path('register/', RegisterAPI.as_view(), name = "register"),
     path('password-change/', PasswordChangeAPI.as_view(), name = "password-change"),
-    path('', include('django.contrib.auth.urls')),
+    path('password-reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     ]
+
+#from django_rest_passwordreset import urls
