@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'knox',
     'rest_framework.authtoken',
     'accounts',
+    'rest_auth',
+    'django_rest_passwordreset',
     'api',
     'corsheaders',
 ]
@@ -77,7 +79,7 @@ ROOT_URLCONF = 'Book_Lib_Project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'accounts', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -146,6 +148,8 @@ STATIC_URL = '/static/'
 #-----------------------------------------------------------------------------------------------
 #-----------------------------------------------------------------------------------------------
 AUTH_USER_MODEL = 'accounts.UserProfile'
+
+LOGIN_URL = '/accounts/login/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'

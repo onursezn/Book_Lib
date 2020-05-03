@@ -1,10 +1,8 @@
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser
-from django.contrib.auth.models import BaseUserManager
-from django.contrib.auth.models import PermissionsMixin
-from rest_framework import serializers
-
 from django.contrib.auth.hashers import check_password
+from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
+                                        PermissionsMixin)
+from django.db import models
+
 
 class UserProfileManager(BaseUserManager):
 
@@ -14,7 +12,8 @@ class UserProfileManager(BaseUserManager):
             raise ValueError('User must have an email address and username')
 
         email = self.normalize_email(email)
-        user = self.model(email = email, first_name = first_name, last_name = last_name, username = username)
+        user = self.model(email = email, first_name = first_name, 
+                          last_name = last_name, username = username)
         user.set_password(password)
         user.save(using=self._db)
 
@@ -40,6 +39,7 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     first_login = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add = True)
+    last_login = models.DateTimeField(auto_now = True, null = True)
 
     objects = UserProfileManager()
         
@@ -53,5 +53,4 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     def check_password(self, raw_password):
         
         return check_password(raw_password, self.password)
-
 
