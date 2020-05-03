@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from corsheaders.defaults import default_headers
 from decouple import config
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,12 +21,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = 'myt1r#mcj11jf8#&dhh@kds=fbj5*#k(^h(wa3^i_hvn0#$pv2'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1']
 
 
 # Application definition
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
     'rest_framework',
     'knox',
@@ -44,6 +46,8 @@ INSTALLED_APPS = [
     'accounts',
     'rest_auth',
     'django_rest_passwordreset',
+    'api',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -54,7 +58,21 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
+
+CORS_ORIGIN_WHITELIST = (
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+)
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = (
+    'Access-Control-Allow-Origin: http://127.0.0.1:3000',
+)
+
+SESSION_COOKIE_HTTPONLY = False
 
 ROOT_URLCONF = 'Book_Lib_Project.urls'
 
@@ -145,16 +163,15 @@ DEFAULT_FROM_EMAIL = "Book App'den sevgilerle <noreply@bookapp.com>"
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
     'DATETIME_FORMAT': ("%m/%d/%Y %H:%M:%S",),
-    
+
  
-    'DEFAULT_PERMISSION_CLASSES':(
+    'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',),
 }
 
 
 AUTHENTICATION_BACKENDS = [
       "django.contrib.auth.backends.ModelBackend",
-#      #"accounts.backends.EmailAuthenticationBackend",
   ]
 
 PASSWORD_HASHERS = [
@@ -176,3 +193,5 @@ REST_KNOX = {
   'AUTO_REFRESH': False,
   'EXPIRY_DATETIME_FORMAT': api_settings.DATETIME_FORMAT,
 }
+
+SITE_ID=1

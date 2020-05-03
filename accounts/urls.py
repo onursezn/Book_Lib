@@ -11,5 +11,3 @@ urlpatterns = [
     path('password-change/', PasswordChangeAPI.as_view(), name = "password-change"),
     path('password-reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     ]
-
-#from django_rest_passwordreset import urls
