@@ -12,7 +12,7 @@ from . import models
 from. import mixins
 
 
-class UserProfileDetailViewSet(mixins.ReadWriteSerializerMixin, viewsets.ModelViewSet):
+class UserProfileViewSet(mixins.ReadWriteSerializerMixin, viewsets.ModelViewSet):
 #     """Handle creating and updating profiles"""
 
     list_serializer_class = serializers.UserProfileAPIListSerializer
@@ -430,10 +430,39 @@ class ReviewDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.Review.objects.all()
 
 
-class AuthorListAPIView(generics.ListCreateAPIView):
+class AuthorViewSet(mixins.ReadWriteSerializerMixin, viewsets.ModelViewSet):
 
-    serializer_class = serializers.AuthorListSerializer
+    list_serializer_class = serializers.AuthorListSerializer
+    detail_serializer_class = serializers.AuthorDetailSerializer
     queryset = models.Author.objects.all()
+
+    @action(detail=True, methods=['PUT'])
+    def follow(self, request, pk=None):
+
+        try:
+            author = models.Author.objects.get(id=pk)
+            user = request.user.userprofileapi
+            author.followers.add(user)
+            author.save()
+            response = {'message': 'You followed the author'}
+            return Response(response, status=status.HTTP_200_OK)
+        except:
+            response = {'message': 'Author cannot be followed'}
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['PUT'])
+    def unfollow(self, request, pk=None):
+
+        try:
+            author = models.Author.objects.get(id=pk)
+            user = request.user.userprofileapi
+            author.followers.remove(user)
+            author.save()
+            response = {'message': 'You unfollowed the author'}
+            return Response(response, status=status.HTTP_200_OK)
+        except:
+            response = {'message': 'Author cannot be unfollowed'}
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AuthorDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
