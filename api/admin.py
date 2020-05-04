@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import UserProfile, Book, Review, Rating, BookList, Author, AbstractBook, UpDownRating
+from .models import UserProfileAPI, Book, Review, Rating, BookList, Author, AbstractBook, UpDownRating
 
-admin.site.register(UserProfile)
+admin.site.register(UserProfileAPI)
 admin.site.register(Book)
 admin.site.register(Review)
 admin.site.register(Rating)
