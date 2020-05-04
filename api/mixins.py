@@ -3,7 +3,7 @@ class ReadWriteSerializerMixin(object):
     Overrides get_serializer_class to choose the read serializer
     for GET requests and the write serializer for POST requests.
 
-    Set read_serializer_class and write_serializer_class attributes on a
+    Set list_serializer_class and detail_serializer_class attributes on a
     viewset.
     """
 
@@ -17,7 +17,7 @@ class ReadWriteSerializerMixin(object):
 
     def get_list_serializer_class(self):
         assert self.list_serializer_class is not None, (
-            "'%s' should either include a `read_serializer_class` attribute,"
+            "'%s' should either include a `list_serializer_class` attribute,"
             "or override the `get_read_serializer_class()` method."
             % self.__class__.__name__
         )
@@ -25,7 +25,7 @@ class ReadWriteSerializerMixin(object):
 
     def get_detail_serializer_class(self):
         assert self.detail_serializer_class is not None, (
-            "'%s' should either include a `write_serializer_class` attribute,"
+            "'%s' should either include a `detail_serializer_class` attribute,"
             "or override the `get_write_serializer_class()` method."
             % self.__class__.__name__
         )
