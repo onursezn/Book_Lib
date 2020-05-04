@@ -1,11 +1,10 @@
 from rest_framework import serializers
 from . import models
-from rest_framework.authtoken.models import Token
 import requests as req
 
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
+class UserProfileAPISerializer(serializers.ModelSerializer):
     mylist_url = serializers.HyperlinkedIdentityField(
         view_name='user_mylists',
         lookup_field='username'
@@ -39,10 +38,23 @@ class UserProfileSerializer(serializers.ModelSerializer):
         lookup_field = 'username'
     )
 
+    number_of_books = serializers.SerializerMethodField()
+    number_of_lists = serializers.SerializerMethodField()
+    number_of_reviews = serializers.SerializerMethodField()
+    number_of_books_in_library = serializers.SerializerMethodField()
+    number_of_books_in_readlist = serializers.SerializerMethodField()
+    number_of_followers = serializers.SerializerMethodField()
+    number_of_liked_lists = serializers.SerializerMethodField()
+    number_of_following = serializers.SerializerMethodField()
+    is_following = serializers.SerializerMethodField()
+
     class Meta:
-        model = models.UserProfile
-        fields = ('first_name','last_name', 'username', 'bio', 'avatar', 'currently_reading', 'favorite_books', 'readlist_url', 'mylist_url',
-         'mybooks_url','library_url',  'reviews_url', 'likes_url', 'followers_url', 'following_url')
+        model = models.UserProfileAPI
+        fields = ('bio', 'avatar', 'currently_reading', 'favorite_books', 'readlist_url', 'mylist_url',
+                  'mybooks_url','library_url',  'reviews_url', 'likes_url', 'followers_url', 'following_url',
+                  'number_of_books', 'number_of_lists', 'number_of_reviews', 'number_of_books_in_library',
+                  'number_of_books_in_readlist', 'number_of_followers', 'number_of_following', 'number_of_liked_lists',
+                  'is_following')
         extra_kwargs = {
             'password': {
                 'write_only': True,
@@ -50,12 +62,52 @@ class UserProfileSerializer(serializers.ModelSerializer):
             }
         }
 
+    def get_number_of_books(self, object):
+        return object.my_books.count()
 
-class UserProfileListSerializer(serializers.ModelSerializer):
+    def get_number_of_reviews(self, object):
+        return object.my_reviews.count()
+
+    def get_number_of_lists(self, object):
+        return object.my_lists.count()
+
+    def get_number_of_books_in_library(self, object):
+        return object.library.count()
+
+    def get_number_of_books_in_readlist(self, object):
+        return object.read_list.count()
+
+    def get_number_of_followers(self, object):
+        return object.followers.count()
+
+    def get_number_of_liked_lists(self, object):
+        return object.liked_lists.count()
+
+    def get_number_of_following(self, object):
+        return object.followings.count()
+
+    def get_is_following(self,object):
+
+        user = self.context['request'].user
+        user_has_followed = False
+
+        if not user.is_anonymous:
+            try:
+                user_has_followed = bool(object.followers.get(user=user.id))
+            finally:
+                return user_has_followed
+        return user_has_followed
+
+
+class UserProfileAPIListSerializer(serializers.ModelSerializer):
+
+    number_of_books = serializers.SerializerMethodField()
+    number_of_lists = serializers.SerializerMethodField()
+    number_of_reviews = serializers.SerializerMethodField()
 
     class Meta:
-        model = models.UserProfile
-        fields = ("id", "username", "avatar", "first_name", "last_name", "email", "password")
+        model = models.UserProfileAPI
+        fields = ("id", "username", "avatar", "number_of_books", "number_of_reviews", "number_of_lists")
 
         extra_kwargs = {
             'password': {
@@ -64,24 +116,44 @@ class UserProfileListSerializer(serializers.ModelSerializer):
             }
         }
 
-    def create(self, validated_data):
-        """Create and return a new user"""
-        user = models.UserProfile.objects.create_users(
-            email=validated_data['email'],
-            username=validated_data['username'],
-            first_name=validated_data['first_name'],
-            last_name = validated_data['last_name'],
-            password=validated_data['password']
-        )
-        token = Token.objects.create(user=user)
+    def get_number_of_books(self, object):
+        return object.my_books.count()
 
-        return user
+    def get_number_of_reviews(self, object):
+        return object.my_reviews.count()
+
+    def get_number_of_lists(self, object):
+        return object.my_lists.count()
+
 
 class BookSerializer(serializers.ModelSerializer):
 
+    vote_sum = serializers.SerializerMethodField()
+    user_vote = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Book
-        fields = ("isbn_10",)
+        fields = ("isbn_10", "release_date", "publisher", "user_vote", "vote_sum")
+
+    def get_vote_sum(self, object):
+
+        votes = object.votes.values_list('value', flat=True)
+        summation = 0
+        for value in votes:
+            summation += value
+        return summation
+
+    def get_user_vote(self, object):
+
+        user = self.context['request'].user
+        user_vote = 0
+
+        if not user.is_anonymous:
+            try:
+                user_vote = object.votes.get(user=user.id).value
+            finally:
+                return user_vote
+        return user_vote
 
     def create(self, validated_data):
         isbn = self.validated_data['isbn_10']
@@ -117,27 +189,39 @@ class BookSerializer(serializers.ModelSerializer):
             # b = Book(abstract_book=models.AbstractBook.objects.get(name=book_information['name'])
 
 
-
-
-
-
-
-
 class ReviewSerializer(serializers.ModelSerializer):
+
+    user = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = models.Review
         fields = "__all__"
 
 
+class AuthorListSerializer(serializers.ModelSerializer):
+
+    number_of_followers = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.Author
+        fields = "__all__"
+
+    def get_number_of_followers(self, object):
+        return object.followers.count()
+
+
 class AbstractBookListSerializer(serializers.ModelSerializer):
 
     number_of_ratings = serializers.SerializerMethodField()
     avg_rating = serializers.SerializerMethodField()
+    number_of_fans = serializers.SerializerMethodField()
+    number_of_reviews = serializers.SerializerMethodField()
+    number_of_readings = serializers.SerializerMethodField()
 
     class Meta:
         model = models.AbstractBook
-        fields = ('id', 'name', 'image', 'authors', 'number_of_ratings', 'avg_rating')
+        fields = ('id', 'name', 'image', 'authors', 'number_of_ratings', 'avg_rating', 'number_of_fans',
+                   'number_of_reviews', 'number_of_readings')
 
     def get_number_of_ratings(self, object):
         return object.ratings.count()
@@ -154,13 +238,26 @@ class AbstractBookListSerializer(serializers.ModelSerializer):
             a = []
         return a
 
+    def get_number_of_fans(self, object):
+        return object.bookLiker.count()
+
+    def get_number_of_reviews(self, object):
+        return object.reviews.count()
+
+    def get_number_of_readings(self, object):
+        return object.reader.count()
+
 
 class AbstractBookDetailSerializer(serializers.ModelSerializer):
 
+    authors = AuthorListSerializer(read_only=True, many=True)
     child_books = BookSerializer(many=True, required=True)
+    reviews = ReviewSerializer(many=True, required=False)
     number_of_ratings = serializers.SerializerMethodField()
     avg_rating = serializers.SerializerMethodField()
-    reviews = ReviewSerializer(many=True, required=False)
+    number_of_fans = serializers.SerializerMethodField()
+    number_of_reviews = serializers.SerializerMethodField()
+    number_of_readings = serializers.SerializerMethodField()
 
     class Meta:
         model = models.AbstractBook
@@ -181,17 +278,14 @@ class AbstractBookDetailSerializer(serializers.ModelSerializer):
             a = []
         return a
 
+    def get_number_of_fans(self, object):
+        return object.bookLiker.count()
 
-class AuthorListSerializer(serializers.ModelSerializer):
+    def get_number_of_reviews(self, object):
+        return object.reviews.count()
 
-    number_of_followers = serializers.SerializerMethodField()
-
-    class Meta:
-        model = models.Author
-        fields = "__all__"
-
-    def get_number_of_followers(self, object):
-        return object.followers.count()
+    def get_number_of_readings(self, object):
+        return object.reader.count()
 
 
 class AuthorDetailSerializer(serializers.ModelSerializer):
@@ -207,6 +301,7 @@ class BookListDetailSerializer(serializers.ModelSerializer):
 
     books = AbstractBookListSerializer(many=True, required=False)
     number_of_books = serializers.SerializerMethodField()
+    number_of_likes = serializers.SerializerMethodField()
     vote_sum = serializers.SerializerMethodField()
 
     class Meta:
@@ -224,9 +319,13 @@ class BookListDetailSerializer(serializers.ModelSerializer):
             summation += value
         return summation
 
+    def get_number_of_likes(self, object):
+        return object.listLiker.count()
+
 
 class BookListListSerializer(serializers.ModelSerializer):
 
+    user = UserProfileAPIListSerializer(read_only=True)
     number_of_books = serializers.SerializerMethodField()
     vote_sum = serializers.SerializerMethodField()
 
@@ -244,3 +343,25 @@ class BookListListSerializer(serializers.ModelSerializer):
         for value in votes:
             summation += value
         return summation
+
+
+class RatingSerializer(serializers.ModelSerializer):
+
+    user =  serializers.StringRelatedField(read_only=True)
+    book =  serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = models.Rating
+        fields= "__all__"
+
+
+class UpDownRatingSerializer(serializers.ModelSerializer):
+
+    user =  serializers.StringRelatedField(read_only=True)
+    book =  serializers.StringRelatedField(read_only=True)
+    bookList = serializers.StringRelatedField(read_only=True)
+    review = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = models.UpDownRating
+        fields= "__all__"
