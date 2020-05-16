@@ -70,11 +70,3 @@ class GeneralUserProfileTestCase(APITestCase):
         response = self.client.put(reverse("users-detail", kwargs={"username": "freudie"}),
                                    {"first_name": "foooool!!", "last_name": "foooool!!"})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-#         # Additionally, we want to return the username and email upon successful creation.
-#         self.assertEqual(response.data['username'], data['username'])
-#         self.assertEqual(response.data['email'], data['email'])
-#         self.assertFalse('password' in response.data)
-
-# def
