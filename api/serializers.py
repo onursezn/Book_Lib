@@ -50,7 +50,7 @@ class UserProfileAPISerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.UserProfileAPI
-        fields = ('bio', 'avatar', 'currently_reading', 'favorite_books', 'readlist_url', 'mylist_url',
+        fields = ('bio', 'image', 'currently_reading', 'favorite_books', 'readlist_url', 'mylist_url',
                   'mybooks_url','library_url',  'reviews_url', 'likes_url', 'followers_url', 'following_url',
                   'number_of_books', 'number_of_lists', 'number_of_reviews', 'number_of_books_in_library',
                   'number_of_books_in_readlist', 'number_of_followers', 'number_of_following', 'number_of_liked_lists',
@@ -107,7 +107,7 @@ class UserProfileAPIListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.UserProfileAPI
-        fields = ("id", "username", "avatar", "number_of_books", "number_of_reviews", "number_of_lists")
+        fields = ("id", "username", "image", "number_of_books", "number_of_reviews", "number_of_lists")
 
         extra_kwargs = {
             'password': {
@@ -155,39 +155,6 @@ class BookSerializer(serializers.ModelSerializer):
                 return user_vote
         return user_vote
 
-    def create(self, validated_data):
-        isbn = self.validated_data['isbn_10']
-        url = "https://www.googleapis.com/books/v1/volumes?q=" + isbn
-        print(url)
-        h = {'X-API-Key': 'AIzaSyCHAmQ3pPfn3Uh56eA7wSZ8RQUl0yvuuQw'}
-        resp = req.get(url, headers=h)
-        print(resp)
-        book_info = resp.json()['items'][0]
-        book_information = {
-        'name' : book_info['volumeInfo']['title'],
-        'authors' : book_info['volumeInfo']['authors'],
-        #'description' : book_info['volumeInfo']['description'],
-        # image = book_info['volumeInfo']['authors']
-        'isbn_10' : book_info['volumeInfo']['industryIdentifiers'][0]['identifier'],
-        'isbn_13' : book_info['volumeInfo']['industryIdentifiers'][1]['identifier'],
-        'release_date' : book_info['volumeInfo']['publishedDate']
-        }
-
-        book = models.Book.objects.create(
-        # name = book_information['name'],
-        #                                               authors = book_information['authors'],
-        #                                               description = book_information['description'],
-                                                      isbn_10 = book_information['isbn_10'],
-                                                      isbn_13 = book_information['isbn_13'],
-                                                      release_date = book_information['release_date'])
-
-        author = models.Author.objects.get_or_create(name = book_information['authors'])
-        # print(author)
-
-        return book
-        # if models.AbstractBook.objects.filter(name = book_information['name'])
-            # b = Book(abstract_book=models.AbstractBook.objects.get(name=book_information['name'])
-
 
 class ReviewSerializer(serializers.ModelSerializer):
 
@@ -204,7 +171,7 @@ class AuthorListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Author
-        fields = "__all__"
+        exclude = ("followers", )
 
     def get_number_of_followers(self, object):
         return object.followers.count()
@@ -217,11 +184,12 @@ class AbstractBookListSerializer(serializers.ModelSerializer):
     number_of_fans = serializers.SerializerMethodField()
     number_of_reviews = serializers.SerializerMethodField()
     number_of_readings = serializers.SerializerMethodField()
+    authors = AuthorListSerializer(read_only=True, many=True)
 
     class Meta:
         model = models.AbstractBook
         fields = ('id', 'name', 'image', 'authors', 'number_of_ratings', 'avg_rating', 'number_of_fans',
-                   'number_of_reviews', 'number_of_readings')
+                   'number_of_reviews', 'number_of_readings', 'description')
 
     def get_number_of_ratings(self, object):
         return object.ratings.count()
