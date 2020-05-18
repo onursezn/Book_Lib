@@ -203,6 +203,24 @@ class UpDownRating(models.Model):
         return str(self.value)
 
 
+class Category(models.Model):
+    name = models.CharField(max_length=255)
+    slug = models.SlugField()
+    parent = models.ForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('slug', 'parent',)
+        verbose_name_plural = "categories"
+
+    def __str__(self):
+        full_path = [self.name]
+        k = self.parent
+        while k is not None:
+            full_path.append(k.name)
+            k = k.parent
+        return ' -> '.join(full_path[::-1])
+
+
 def image_save(obj, model, im_width, im_height, *args, **kwargs):
     # Opening the uploaded image
     width = im_width
