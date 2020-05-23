@@ -2,13 +2,14 @@ import os
 from django.db import models
 from accounts.models import UserProfile
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from partial_date import PartialDateField
 from PIL import Image as Img
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import sys
+from .utils import unique_slug_generator
 # Create your models here.
 
 class UserProfileAPI(models.Model):
@@ -110,6 +111,7 @@ class AbstractBook(models.Model):
     name = models.CharField(max_length=255)
     authors = models.ManyToManyField(Author, related_name='books')
     book_lists = models.ManyToManyField("BookList", related_name='books', blank=True)
+    category = models.ManyToManyField('Category', related_name='books')
     #genre = models.CharField(default='', max_length=63)
 
     REQUIRED_FIELDS = ['name', 'authors']
@@ -129,7 +131,6 @@ class Book(models.Model):
     page_number = models.IntegerField(null=True, blank=True)
     description = models.CharField(max_length=1023, null=True, blank=True)
     image = models.ImageField(null=True, blank=True, upload_to='books')
-    category = models.CharField(max_length=255, null=True, blank=True)
     abstract_book = models.ForeignKey(AbstractBook, blank=True, null=True, related_name='child_books', on_delete=models.CASCADE)
 
     #REQUIRED_FIELDS = ['name', 'isbn_13']
@@ -201,6 +202,29 @@ class UpDownRating(models.Model):
 
     def __str__(self):
         return str(self.value)
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    slug = models.SlugField(max_length=255, default='', unique=True)
+    parent = models.ForeignKey('self', blank=True, null=True, related_name='children', on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name_plural = "categories"
+
+    def __str__(self):
+        full_path = [self.name]
+        k = self.parent
+        while k is not None:
+            full_path.append(k.name)
+            k = k.parent
+        return ' -> '.join(full_path[::-1])
+
+
+@receiver(pre_save, sender=Category)
+def generate_slug(sender, instance, *args, **kwargs):
+    if not instance.slug:
+        instance.slug = unique_slug_generator(instance)
 
 
 def image_save(obj, model, im_width, im_height, *args, **kwargs):

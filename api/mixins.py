@@ -1,4 +1,4 @@
-class ReadWriteSerializerMixin(object):
+class ListDetailSerializerMixin(object):
     """
     Overrides get_serializer_class to choose the read serializer
     for GET requests and the write serializer for POST requests.

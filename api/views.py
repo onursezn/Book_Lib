@@ -5,14 +5,14 @@ from rest_framework import filters
 from rest_framework import serializers as restSerializers
 from knox.auth import TokenAuthentication
 from rest_framework.decorators import action
-
+from django.db.models import Avg
 
 from . import serializers
 from . import models
 from. import mixins
 
 
-class UserProfileViewSet(mixins.ReadWriteSerializerMixin, viewsets.ModelViewSet):
+class UserProfileViewSet(mixins.ListDetailSerializerMixin, viewsets.ModelViewSet):
 #     """Handle creating and updating profiles"""
 
     list_serializer_class = serializers.UserProfileAPIListSerializer
@@ -192,7 +192,7 @@ class UserProfileCurrentlyReadingAPIView(generics.ListAPIView):
         return currently_reading
 
 
-class BookListViewSet(mixins.ReadWriteSerializerMixin, viewsets.ModelViewSet):
+class BookListViewSet(mixins.ListDetailSerializerMixin, viewsets.ModelViewSet):
 
     queryset = models.BookList.objects.all()
     list_serializer_class = serializers.BookListListSerializer
@@ -235,9 +235,9 @@ class BookListViewSet(mixins.ReadWriteSerializerMixin, viewsets.ModelViewSet):
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AbstractBookViewSet(mixins.ReadWriteSerializerMixin, viewsets.ModelViewSet):
+class AbstractBookViewSet(mixins.ListDetailSerializerMixin, viewsets.ModelViewSet):
 
-    queryset = models.AbstractBook.objects.all()
+    queryset = models.AbstractBook.objects.annotate(avg_rating=Avg('ratings__stars'))
     list_serializer_class = serializers.AbstractBookListSerializer
     detail_serializer_class = serializers.AbstractBookDetailSerializer
 
@@ -430,7 +430,7 @@ class ReviewDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.Review.objects.all()
 
 
-class AuthorViewSet(mixins.ReadWriteSerializerMixin, viewsets.ModelViewSet):
+class AuthorViewSet(mixins.ListDetailSerializerMixin, viewsets.ModelViewSet):
 
     list_serializer_class = serializers.AuthorListSerializer
     detail_serializer_class = serializers.AuthorDetailSerializer
@@ -539,3 +539,9 @@ class UpDownRatingDetailsAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.UpDownRating.objects.all()
 
 
+class CategoryViewSet(mixins.ListDetailSerializerMixin, viewsets.ModelViewSet):
+
+    lookup_field = 'slug'
+    list_serializer_class = serializers.CategoryListSerializer
+    detail_serializer_class = serializers.CategoryDetailSerializer
+    queryset = models.Category.objects.all()

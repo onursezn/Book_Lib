@@ -133,7 +133,7 @@ class BookSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Book
-        fields = ("isbn_10", "release_date", "publisher", "user_vote", "vote_sum")
+        fields = "__all__"
 
     def get_vote_sum(self, object):
 
@@ -154,6 +154,23 @@ class BookSerializer(serializers.ModelSerializer):
             finally:
                 return user_vote
         return user_vote
+
+
+class BookListSerializer(serializers.ModelSerializer):
+
+    vote_sum = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.Book
+        fields = ('id', 'image', 'vote_sum')
+
+    def get_vote_sum(self, object):
+
+        votes = object.votes.values_list('value', flat=True)
+        summation = 0
+        for value in votes:
+            summation += value
+        return summation
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -180,16 +197,17 @@ class AuthorListSerializer(serializers.ModelSerializer):
 class AbstractBookListSerializer(serializers.ModelSerializer):
 
     number_of_ratings = serializers.SerializerMethodField()
-    avg_rating = serializers.SerializerMethodField()
+    avg_rating = serializers.IntegerField(read_only=True)
     number_of_fans = serializers.SerializerMethodField()
     number_of_reviews = serializers.SerializerMethodField()
     number_of_readings = serializers.SerializerMethodField()
+    child_books = BookListSerializer(read_only=True, many=True)
     authors = AuthorListSerializer(read_only=True, many=True)
 
     class Meta:
         model = models.AbstractBook
-        fields = ('id', 'name', 'image', 'authors', 'number_of_ratings', 'avg_rating', 'number_of_fans',
-                   'number_of_reviews', 'number_of_readings', 'description')
+        fields = ('id', 'name', 'authors', 'number_of_ratings', 'avg_rating', 'number_of_fans',
+                   'number_of_reviews', 'number_of_readings', 'child_books')
 
     def get_number_of_ratings(self, object):
         return object.ratings.count()
@@ -214,6 +232,10 @@ class AbstractBookListSerializer(serializers.ModelSerializer):
 
     def get_number_of_readings(self, object):
         return object.reader.count()
+
+    """def get_image(self, object):
+        book = object.child_books.all().order_by('-total_vote').first()
+        return book.image"""
 
 
 class AbstractBookDetailSerializer(serializers.ModelSerializer):
@@ -320,16 +342,34 @@ class RatingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Rating
-        fields= "__all__"
+        fields = "__all__"
 
 
 class UpDownRatingSerializer(serializers.ModelSerializer):
 
-    user =  serializers.StringRelatedField(read_only=True)
-    book =  serializers.StringRelatedField(read_only=True)
+    user = serializers.StringRelatedField(read_only=True)
+    book = serializers.StringRelatedField(read_only=True)
     bookList = serializers.StringRelatedField(read_only=True)
     review = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = models.UpDownRating
-        fields= "__all__"
+        fields = "__all__"
+
+
+class CategoryListSerializer(serializers.ModelSerializer):
+
+    parent = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = models.Category
+        fields = ('id', 'name', 'parent', 'slug')
+
+
+class CategoryDetailSerializer(serializers.ModelSerializer):
+
+    books = AbstractBookListSerializer(many=True, required=False)
+
+    class Meta:
+        model = models.Category
+        fields = ('id', 'parent', 'books')
