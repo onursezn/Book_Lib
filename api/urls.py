@@ -6,7 +6,7 @@ from .views import (BookListViewSet, AbstractBookViewSet, ReviewListAPIView, Rev
                     UserProfileMyBooksAPIView, UserProfileLibraryAPIView, RatingCreateAPIView, RatingDetailsAPIView,
                     UserProfileReviewsAPIView, UserProfileLikesAPIView, UserProfileFollowersAPIView,
                     UserProfileFollowingAPIView, BookListAPIView, UserProfileFavouritesAPIView,
-                    UserProfileCurrentlyReadingAPIView, AuthorDetailAPIView, AuthorViewSet,
+                    UserProfileCurrentlyReadingAPIView, CategoryViewSet, AuthorViewSet,
                     UpDownRatingCreateAPIView, UpDownRatingDetailsAPIView )
 from rest_framework import routers
 
@@ -15,6 +15,7 @@ router.register('users', UserProfileViewSet)
 router.register('booklists', BookListViewSet)
 router.register('abstractbooks', AbstractBookViewSet)
 router.register('authors', AuthorViewSet)
+router.register('categories', CategoryViewSet)
 
 
 urlpatterns = [
@@ -25,8 +26,6 @@ urlpatterns = [
     path('ratings/<int:pk>/', RatingDetailsAPIView.as_view(), name="rating_detail"),
     path('updownratings/', UpDownRatingCreateAPIView.as_view(), name="up_down_rating_list"),
     path('updownratings/<int:pk>/', UpDownRatingDetailsAPIView.as_view(), name="up_down_rating_detail"),
-    # path('authors/', AuthorListAPIView.as_view(), name="author_list"),
-    # path('authors/<int:pk>/', AuthorDetailAPIView.as_view(), name="author_detail"),
     path('users/<str:username>/mylists', UserProfileMyListsAPIView.as_view(), name="user_mylists"),
     path('users/<str:username>/readlist', UserProfileReadListsAPIView.as_view(), name="user_readlist"),
     path('users/<str:username>/mybooks', UserProfileMyBooksAPIView.as_view(), name="user_mybooks"),
