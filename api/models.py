@@ -64,19 +64,19 @@ class BookList(models.Model):
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
-        image_save(self, UserProfileAPI, 200, 200, *args, **kwargs)
-
-
-@receiver(post_delete, sender=BookList)
-def auto_delete_BookListImage_on_delete(sender, instance, **kwargs):
-    """
-    Deletes file from filesystem
-    when corresponding `MediaFile` object is deleted.
-    """
-    if instance.image:
-        if os.path.isfile(instance.image.path):
-            os.remove(instance.image.path)
+#     def save(self, *args, **kwargs):
+#         image_save(self, UserProfileAPI, 200, 200, *args, **kwargs)
+#
+#
+# @receiver(post_delete, sender=BookList)
+# def auto_delete_BookListImage_on_delete(sender, instance, **kwargs):
+#     """
+#     Deletes file from filesystem
+#     when corresponding `MediaFile` object is deleted.
+#     """
+#     if instance.image:
+#         if os.path.isfile(instance.image.path):
+#             os.remove(instance.image.path)
 
 
 class Author(models.Model):

@@ -164,6 +164,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
     'DATETIME_FORMAT': ("%m/%d/%Y %H:%M:%S",),
 
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 54,
  
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',),

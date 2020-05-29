@@ -315,7 +315,7 @@ class BookListDetailSerializer(serializers.ModelSerializer):
 
 class BookListListSerializer(serializers.ModelSerializer):
 
-    user = UserProfileAPIListSerializer(read_only=True)
+    user = UserProfileAPIListSerializer(required=False)
     number_of_books = serializers.SerializerMethodField()
     vote_sum = serializers.SerializerMethodField()
 
