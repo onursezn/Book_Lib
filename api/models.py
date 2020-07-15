@@ -112,6 +112,7 @@ class AbstractBook(models.Model):
     authors = models.ManyToManyField(Author, related_name='books')
     book_lists = models.ManyToManyField("BookList", related_name='books', blank=True)
     category = models.ManyToManyField('Category', related_name='books')
+    pop_child_book = models.OneToOneField('Book', related_name='pop_of_parent', on_delete=models.PROTECT, null=True, blank=True)
     #genre = models.CharField(default='', max_length=63)
 
     REQUIRED_FIELDS = ['name', 'authors']

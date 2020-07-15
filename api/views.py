@@ -485,7 +485,8 @@ class ReviewListAPIView(generics.ListCreateAPIView):
         request_user = self.request.user.userprofileapi
         kwarg_abstractbook = self.request.data["abstract_book"]
         abstractbook = models.AbstractBook.objects.get(pk=kwarg_abstractbook)
-
+        print(abstractbook.id)
+        print(request_user.username)
         if abstractbook.reviews.filter(user=request_user).exists():
             raise restSerializers.ValidationError("You have already reviewed this book!")
 
