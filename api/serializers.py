@@ -126,6 +126,13 @@ class UserProfileAPIListSerializer(serializers.ModelSerializer):
         return object.my_lists.count()
 
 
+class UserProfileAPIReviewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.UserProfileAPI
+        fields = ( 'username', 'image' )
+
+
 class BookSerializer(serializers.ModelSerializer):
 
     vote_sum = serializers.SerializerMethodField()
@@ -173,9 +180,19 @@ class BookListSerializer(serializers.ModelSerializer):
         return summation
 
 
+class AbstractBookForReviewSerializer(serializers.ModelSerializer):
+
+    pop_child_book = BookListSerializer(read_only=True)
+
+    class Meta:
+        model = models.AbstractBook
+        fields = ( 'id', 'name', 'pop_child_book')
+
+
 class ReviewSerializer(serializers.ModelSerializer):
 
-    user = serializers.StringRelatedField(read_only=True)
+    user = UserProfileAPIReviewSerializer()
+    abstract_book = AbstractBookForReviewSerializer()
 
     class Meta:
         model = models.Review
@@ -201,13 +218,13 @@ class AbstractBookListSerializer(serializers.ModelSerializer):
     number_of_fans = serializers.SerializerMethodField()
     number_of_reviews = serializers.SerializerMethodField()
     number_of_readings = serializers.SerializerMethodField()
-    child_books = BookListSerializer(read_only=True, many=True)
+    pop_child_book = BookListSerializer(read_only=True)
     authors = AuthorListSerializer(read_only=True, many=True)
 
     class Meta:
         model = models.AbstractBook
         fields = ('id', 'name', 'authors', 'number_of_ratings', 'avg_rating', 'number_of_fans',
-                   'number_of_reviews', 'number_of_readings', 'child_books')
+                   'number_of_reviews', 'number_of_readings', 'pop_child_book')
 
     def get_number_of_ratings(self, object):
         return object.ratings.count()
@@ -242,6 +259,7 @@ class AbstractBookDetailSerializer(serializers.ModelSerializer):
 
     authors = AuthorListSerializer(read_only=True, many=True)
     child_books = BookSerializer(many=True, required=True)
+    pop_child_book = BookListSerializer(read_only=True)
     reviews = ReviewSerializer(many=True, required=False)
     number_of_ratings = serializers.SerializerMethodField()
     avg_rating = serializers.SerializerMethodField()
