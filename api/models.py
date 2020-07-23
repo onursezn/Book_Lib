@@ -238,7 +238,6 @@ def image_save(obj, model, im_width, im_height, *args, **kwargs):
         try:
             this = model.objects.get(id=obj.id)
             if this.image == obj.image:
-                print('same')
                 isSame = True
         except:
             pass
@@ -254,19 +253,8 @@ def image_save(obj, model, im_width, im_height, *args, **kwargs):
             else:
                 scale = imh/height
             im = im.resize((int(imw/scale), int(imh/scale)))
-            (imw, imh) = im.size
-
-        if (imw < width) or (imh < height):
-            im.thumbnail(size, Img.ANTIALIAS)
-            (imw, imh) = im.size
 
         im.load()
-        background = Img.new("RGB", size, (255, 255, 255, 0))
-        # background.resize((width, height))
-        offset = (int(round(((width - imw) / 2), 0)), int(round(((height - imh) / 2), 0)))
-        background.paste(im, offset)
-        im = background
-
         output = BytesIO()
 
         # after modifications, save it to the output
