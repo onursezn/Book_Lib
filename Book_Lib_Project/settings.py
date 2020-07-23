@@ -26,7 +26,7 @@ SECRET_KEY = 'myt1r#mcj11jf8#&dhh@kds=fbj5*#k(^h(wa3^i_hvn0#$pv2'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.31.233', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.0.18', '127.0.0.1']
 
 
 # Application definition
@@ -72,6 +72,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_EXPOSE_HEADERS = (
     'Access-Control-Allow-Origin: http://127.0.0.1:3000',
+    'Access-Control-Allow-Origin: http://192.168.0.18:3000',
 )
 #
 SESSION_COOKIE_HTTPONLY = False
