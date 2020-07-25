@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import UserProfileAPI, Book, Review, Rating, BookList, Author, AbstractBook, UpDownRating, Category
+from .models import (UserProfileAPI, Book, Review, Rating, BookList, Author, AbstractBook, UpDownRating, Category,
+                    Comment, Complaint)
 
 admin.site.register(UserProfileAPI)
 admin.site.register(Book)
@@ -10,3 +11,5 @@ admin.site.register(Author)
 admin.site.register(AbstractBook)
 admin.site.register(UpDownRating)
 admin.site.register(Category)
+admin.site.register(Comment)
+admin.site.register(Complaint)

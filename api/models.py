@@ -1,7 +1,7 @@
 import os
 from django.db import models
 from accounts.models import UserProfile
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, MinLengthValidator
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from partial_date import PartialDateField
@@ -161,13 +161,14 @@ class Review(models.Model):
     review = models.TextField(max_length=1023)
     abstract_book = models.ForeignKey(AbstractBook, on_delete=models.CASCADE, related_name='reviews')
     user = models.ForeignKey(UserProfileAPI, on_delete=models.CASCADE, related_name='my_reviews')
+    spoiler = models.BooleanField(default=False)
 
     class Meta:
         index_together = (('user', 'abstract_book'),)
         unique_together = (('user', 'abstract_book'),)
 
     def __str__(self):
-        return self.user.username
+        return self.user.username + ' ' + str(self.id)
 
 
 class Comment(models.Model):
@@ -182,6 +183,24 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.user.username + ' ' + str(self.id)
+
+
+class Complaint (models.Model):
+
+    class ComplaintType(models.TextChoices):
+        SPOILER = 'SPO'
+        INVECTIVE = 'INV'
+        VIOLENCE = 'VIO'
+        OTHER = 'OTH'
+
+    type = models.CharField(
+        max_length=3,
+        choices=ComplaintType.choices,
+    )
+    text = models.TextField(max_length=511, validators=[MinLengthValidator(20), ], blank=True, null=True)
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='complaints', blank=True, null=True)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='complaints', blank=True, null=True)
+    user = models.ForeignKey(UserProfileAPI, on_delete=models.CASCADE, related_name='complaints', blank=True, null=True)
 
 
 class Rating(models.Model):

@@ -200,6 +200,16 @@ class CommentSerializer(serializers.ModelSerializer):
         exclude = ("review", "booklist")
 
 
+class ComplaintSerializer(serializers.ModelSerializer):
+
+    # review = serializers.StringRelatedField(read_only=True)
+    # comment = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = models.Complaint
+        fields = ("id", )
+
+
 class ReviewListSerializer(serializers.ModelSerializer):
 
     user = UserProfileAPIReviewSerializer()
