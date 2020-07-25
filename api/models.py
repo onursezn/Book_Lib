@@ -198,13 +198,9 @@ class Complaint (models.Model):
         choices=ComplaintType.choices,
     )
     text = models.TextField(max_length=511, validators=[MinLengthValidator(20), ], blank=True, null=True)
-    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='complaint', blank=True, null=True)
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='complaint', blank=True, null=True)
-    user = models.ForeignKey(UserProfileAPI, on_delete=models.CASCADE, related_name='complaint', blank=True, null=True)
-
-    class Meta:
-        unique_together = (('user', 'review'), ('user', 'comment'))
-        index_together = (('user', 'review'), ('user', 'comment'))
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='complaints', blank=True, null=True)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='complaints', blank=True, null=True)
+    user = models.ForeignKey(UserProfileAPI, on_delete=models.CASCADE, related_name='complaints', blank=True, null=True)
 
 
 class Rating(models.Model):

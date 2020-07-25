@@ -566,8 +566,6 @@ class ComplaintCreateAPIView(generics.ListCreateAPIView):
     def create(self, request, *args, **kwargs):
         request_user = request.user.userprofileapi
         request_text = request.POST.get('text', False)
-        # if request.data["text"]:
-        #     request_text = request.data["text"]
 
         data = {
             'user': model_to_dict(request_user),
@@ -585,8 +583,7 @@ class ComplaintCreateAPIView(generics.ListCreateAPIView):
         type = self.request.POST.get('type', False)
         review = models.Review.objects.filter(pk=self.request.POST.get('review', False)).first()
         comment = models.Comment.objects.filter(pk=self.request.POST.get('comment', False)).first()
-        print(serializer)
-        if type == "OTHER":
+        if type == "OTH":
             if request_text:
                 if review:
                     serializer.save(user=request_user, type=type, text=request_text, review=review)
@@ -599,9 +596,13 @@ class ComplaintCreateAPIView(generics.ListCreateAPIView):
 
         else:
             if review:
+                if review.complaints.filter(user=request_user, type=type):
+                    raise restSerializers.ValidationError("You already created a complaint for the same issue")
                 serializer.save(user=request_user, type=type, review=review)
                 return
             elif comment:
+                if comment.complaints.filter(user=request_user, type=type):
+                    raise restSerializers.ValidationError("You already created a complaint for the same issue")
                 serializer.save(user=request_user, type=type, comment=comment)
                 return
         raise restSerializers.ValidationError("Complaint may be done only for comments or reviews")
