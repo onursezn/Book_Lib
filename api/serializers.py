@@ -342,6 +342,7 @@ class BookListDetailSerializer(serializers.ModelSerializer):
     books = AbstractBookListSerializer(many=True, required=False)
     number_of_books = serializers.SerializerMethodField()
     number_of_likes = serializers.SerializerMethodField()
+    read_percentage = serializers.SerializerMethodField()
     vote_sum = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, required=False)
 
@@ -362,6 +363,18 @@ class BookListDetailSerializer(serializers.ModelSerializer):
 
     def get_number_of_likes(self, object):
         return object.listLiker.count()
+
+    def get_read_percentage(self, object):
+        request_user = self.context['request'].user.userprofileapi
+        read_by_user = object.books.filter(reader__id=request_user.id).count()
+        print(read_by_user)
+        try:
+            percentage = read_by_user*100/object.books.count()
+        except ZeroDivisionError:
+            percentage = 0
+
+        return int(percentage)
+
 
 
 class BookListListSerializer(serializers.ModelSerializer):
