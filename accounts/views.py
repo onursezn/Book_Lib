@@ -55,7 +55,10 @@ class LoginAPI(generics.GenericAPIView):
         return Response({
         "user": UserSerializer(user, context=self.get_serializer_context()).data,
         "token": AuthToken.objects.create(user)[1],
-        "expiration": '10'},
+        "expiration": {
+            'days': 0,
+            'hours': 10,
+        }},
         status=status.HTTP_200_OK)
 
 
