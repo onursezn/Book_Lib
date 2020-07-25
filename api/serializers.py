@@ -128,6 +128,8 @@ class UserProfileAPIListSerializer(serializers.ModelSerializer):
 
 class UserProfileAPIReviewSerializer(serializers.ModelSerializer):
 
+    image = serializers.ImageField(required=False, read_only=True)
+
     class Meta:
         model = models.UserProfileAPI
         fields = ( 'username', 'image' )
@@ -189,10 +191,30 @@ class AbstractBookForReviewSerializer(serializers.ModelSerializer):
         fields = ( 'id', 'name', 'pop_child_book')
 
 
-class ReviewSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
+
+    user = UserProfileAPIReviewSerializer()
+
+    class Meta:
+        model = models.Comment
+        exclude = ("review", "booklist")
+
+
+class ReviewListSerializer(serializers.ModelSerializer):
 
     user = UserProfileAPIReviewSerializer()
     abstract_book = AbstractBookForReviewSerializer()
+
+    class Meta:
+        model = models.Review
+        fields = "__all__"
+
+
+class ReviewDetailSerializer(serializers.ModelSerializer):
+
+    user = UserProfileAPIReviewSerializer()
+    abstract_book = AbstractBookForReviewSerializer()
+    comments = CommentSerializer(many=True, required=False)
 
     class Meta:
         model = models.Review
@@ -260,7 +282,7 @@ class AbstractBookDetailSerializer(serializers.ModelSerializer):
     authors = AuthorListSerializer(read_only=True, many=True)
     child_books = BookSerializer(many=True, required=True)
     pop_child_book = BookListSerializer(read_only=True)
-    reviews = ReviewSerializer(many=True, required=False)
+    reviews = ReviewListSerializer(many=True, required=False)
     number_of_ratings = serializers.SerializerMethodField()
     avg_rating = serializers.SerializerMethodField()
     number_of_fans = serializers.SerializerMethodField()
@@ -311,6 +333,7 @@ class BookListDetailSerializer(serializers.ModelSerializer):
     number_of_books = serializers.SerializerMethodField()
     number_of_likes = serializers.SerializerMethodField()
     vote_sum = serializers.SerializerMethodField()
+    comments = CommentSerializer(many=True, required=False)
 
     class Meta:
         model = models.BookList
