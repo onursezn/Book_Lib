@@ -170,6 +170,20 @@ class Review(models.Model):
         return self.user.username
 
 
+class Comment(models.Model):
+    comment = models.TextField(max_length=255)
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
+    booklist = models.ForeignKey(BookList, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
+    user = models.ForeignKey(UserProfileAPI, on_delete=models.CASCADE, related_name='comments')
+
+    class Meta:
+        unique_together = (('user', 'review'), ('user', 'booklist'))
+        index_together = (('user', 'review'), ('user', 'booklist'))
+
+    def __str__(self):
+        return self.user.username + ' ' + str(self.id)
+
+
 class Rating(models.Model):
     user = models.ForeignKey(UserProfileAPI, on_delete=models.CASCADE, related_name="my_ratings")
     book = models.ForeignKey(AbstractBook, on_delete=models.CASCADE, related_name="ratings")

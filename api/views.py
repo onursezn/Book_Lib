@@ -6,6 +6,7 @@ from rest_framework import serializers as restSerializers
 from knox.auth import TokenAuthentication
 from rest_framework.decorators import action
 from django.db.models import Avg
+from django.forms.models import model_to_dict
 
 from . import serializers
 from . import models
@@ -132,7 +133,7 @@ class UserProfileLibraryAPIView(generics.ListAPIView):
 class UserProfileReviewsAPIView(generics.ListAPIView):
 
     queryset = models.Review.objects.all()
-    serializer_class = serializers.ReviewSerializer
+    serializer_class = serializers.ReviewListSerializer
     lookup_field = 'username'
 
     def get_queryset(self):
@@ -476,7 +477,7 @@ class BookListAPIView(generics.ListCreateAPIView):
 
 class ReviewListAPIView(generics.ListCreateAPIView):
 
-    serializer_class = serializers.ReviewSerializer
+    serializer_class = serializers.ReviewListSerializer
     queryset = models.Review.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
@@ -492,11 +493,67 @@ class ReviewListAPIView(generics.ListCreateAPIView):
 
         serializer.save(user=request_user, abstract_book=abstractbook)
 
+    def create(self, request, *args, **kwargs):
+
+        request_user = request.user.userprofileapi
+        kwarg_abstractbook = request.data["abstract_book"]
+        abstractbook = models.AbstractBook.objects.get(pk=kwarg_abstractbook)
+
+        data = {
+            'user': model_to_dict(request_user),
+            'abstract_book': model_to_dict(abstractbook),
+            'review': request.data["review"]
+        }
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 
 class ReviewDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
 
-    serializer_class = serializers.ReviewSerializer
+    serializer_class = serializers.ReviewDetailSerializer
     queryset = models.Review.objects.all()
+    permission_classes = [permissions.IsOwnerOrReadOnly]
+
+
+class CommentCreateAPIView(generics.ListCreateAPIView):
+
+    serializer_class = serializers.CommentSerializer
+    queryset = models.Comment.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def create(self, request, *args, **kwargs):
+        request_user = request.user.userprofileapi
+        data = {
+            'user': model_to_dict(request_user),
+            'comment': request.data['comment'],
+        }
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        request_user = self.request.user.userprofileapi
+        if self.request.data["booklist"]:
+            booklist = models.BookList.objects.get(pk=self.request.data["booklist"])
+            serializer.save(user=request_user, booklist=booklist)
+            return
+        elif self.request.data["review"]:
+            review = models.Review.objects.get(pk=self.request.data["review"])
+            serializer.save(user=request_user, rewiew=review)
+            return
+
+        raise restSerializers.ValidationError("You can comment only for reviews or books")
+
+
+class CommentDestroyAPIView(generics.DestroyAPIView):
+
+    serializer_class = serializers.CommentSerializer
+    queryset = models.Comment
     permission_classes = [permissions.IsOwnerOrReadOnly]
 
 
