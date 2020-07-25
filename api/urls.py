@@ -8,7 +8,7 @@ from .views import (BookListViewSet, AbstractBookViewSet, ReviewListAPIView, Rev
                     UserProfileFollowingAPIView, BookListAPIView, UserProfileFavouritesAPIView,
                     UserProfileCurrentlyReadingAPIView, CategoryViewSet, AuthorViewSet,
                     UpDownRatingCreateAPIView, UpDownRatingDetailsAPIView, CommentCreateAPIView,
-                    CommentDestroyAPIView)
+                    CommentDestroyAPIView, ComplaintCreateAPIView, ComplaintDestroyAPIView, )
 from rest_framework import routers
 
 router = routers.DefaultRouter()
@@ -25,6 +25,8 @@ urlpatterns = [
     path('reviews/<int:pk>/', ReviewDetailAPIView.as_view(), name="review_detail"),
     path('comments/', CommentCreateAPIView.as_view(), name="comment_list"),
     path('comments/<int:pk>/', CommentDestroyAPIView.as_view(), name="comment_destroy"),
+    path('complaints/', ComplaintCreateAPIView.as_view(), name="complaint_list"),
+    path('complaints/<int:pk>/', ComplaintDestroyAPIView.as_view(), name="complaint_destroy"),
     path('ratings/', RatingCreateAPIView.as_view(), name="rating_list"),
     path('ratings/<int:pk>/', RatingDetailsAPIView.as_view(), name="rating_detail"),
     path('updownratings/', UpDownRatingCreateAPIView.as_view(), name="up_down_rating_list"),
