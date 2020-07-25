@@ -175,6 +175,7 @@ class Comment(models.Model):
     comment = models.TextField(max_length=255)
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
     booklist = models.ForeignKey(BookList, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
+    spoiler = models.BooleanField(default=False)
     user = models.ForeignKey(UserProfileAPI, on_delete=models.CASCADE, related_name='comments')
 
     class Meta:
