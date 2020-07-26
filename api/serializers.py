@@ -191,6 +191,14 @@ class AbstractBookForReviewSerializer(serializers.ModelSerializer):
         fields = ( 'id', 'name', 'pop_child_book')
 
 
+class AuthorForReviewSerializer(serializers.ModelSerializer):
+
+    image = serializers.ImageField(required=False, read_only=True)
+    class Meta:
+        model = models.Author
+        fields = ('id', 'name', 'image')
+
+
 class CommentSerializer(serializers.ModelSerializer):
 
     user = UserProfileAPIReviewSerializer()
@@ -213,7 +221,8 @@ class ComplaintSerializer(serializers.ModelSerializer):
 class ReviewListSerializer(serializers.ModelSerializer):
 
     user = UserProfileAPIReviewSerializer()
-    abstract_book = AbstractBookForReviewSerializer()
+    abstract_book = AbstractBookForReviewSerializer(required=False, read_only=True)
+    author = AuthorForReviewSerializer(required=False, read_only=True)
 
     class Meta:
         model = models.Review
@@ -234,6 +243,7 @@ class ReviewDetailSerializer(serializers.ModelSerializer):
 class AuthorListSerializer(serializers.ModelSerializer):
 
     number_of_followers = serializers.SerializerMethodField()
+    number_of_reviews = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Author
@@ -241,6 +251,9 @@ class AuthorListSerializer(serializers.ModelSerializer):
 
     def get_number_of_followers(self, object):
         return object.followers.count()
+
+    def get_number_of_reviews(self, object):
+        return object.reviews.count()
 
 
 class AbstractBookListSerializer(serializers.ModelSerializer):
@@ -331,10 +344,15 @@ class AbstractBookDetailSerializer(serializers.ModelSerializer):
 class AuthorDetailSerializer(serializers.ModelSerializer):
 
     books = AbstractBookListSerializer(many=True)
+    reviews = ReviewListSerializer(many=True, required=False)
+    number_of_reviews = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Author
         fields = "__all__"
+
+    def get_number_of_reviews(self, object):
+        return object.reviews.count()
 
 
 class BookListDetailSerializer(serializers.ModelSerializer):
@@ -365,9 +383,11 @@ class BookListDetailSerializer(serializers.ModelSerializer):
         return object.listLiker.count()
 
     def get_read_percentage(self, object):
-        request_user = self.context['request'].user.userprofileapi
-        read_by_user = object.books.filter(reader__id=request_user.id).count()
-        print(read_by_user)
+        request_user = self.context['request'].user
+        read_by_user = 0
+        if not request_user.is_anonymous:
+            userprofileapi = self.context['request'].user.userprofileapi
+            read_by_user = object.books.filter(reader__id=userprofileapi.id).count()
         try:
             percentage = read_by_user*100/object.books.count()
         except ZeroDivisionError:
