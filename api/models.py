@@ -159,7 +159,8 @@ def auto_delete_Book_on_delete(sender, instance, **kwargs):
 
 class Review(models.Model):
     review = models.TextField(max_length=1023)
-    abstract_book = models.ForeignKey(AbstractBook, on_delete=models.CASCADE, related_name='reviews')
+    abstract_book = models.ForeignKey(AbstractBook, on_delete=models.CASCADE, related_name='reviews', null=True, blank=True)
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='reviews', null=True, blank=True)
     user = models.ForeignKey(UserProfileAPI, on_delete=models.CASCADE, related_name='my_reviews')
     spoiler = models.BooleanField(default=False)
 

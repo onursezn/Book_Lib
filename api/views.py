@@ -484,31 +484,53 @@ class ReviewListAPIView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
 
         request_user = self.request.user.userprofileapi
-        kwarg_abstractbook = self.request.data["abstract_book"]
-        abstractbook = models.AbstractBook.objects.get(pk=kwarg_abstractbook)
-        print(abstractbook.id)
-        print(request_user.username)
-        if abstractbook.reviews.filter(user=request_user).exists():
-            raise restSerializers.ValidationError("You have already reviewed this book!")
+        if self.request.POST.get('abstract_book', False):
+            kwarg_abstractbook = self.request.POST.get('abstract_book', False)
+            abstractbook = models.AbstractBook.objects.get(pk=kwarg_abstractbook)
+            if abstractbook.reviews.filter(user=request_user).exists():
+                raise restSerializers.ValidationError("You have already reviewed this book!")
 
-        serializer.save(user=request_user, abstract_book=abstractbook)
+            serializer.save(user=request_user, abstract_book=abstractbook)
+        elif self.request.POST.get('author', False):
+            kwarg_author = self.request.POST.get('author', False)
+            author = models.Author.objects.get(pk=kwarg_author)
+            if author.reviews.filter(user=request_user).exists():
+                raise restSerializers.ValidationError("You have already reviewed for this author!")
+
+            serializer.save(user=request_user, author=author)
 
     def create(self, request, *args, **kwargs):
 
         request_user = request.user.userprofileapi
-        kwarg_abstractbook = request.data["abstract_book"]
-        abstractbook = models.AbstractBook.objects.get(pk=kwarg_abstractbook)
+        kwarg_abstractbook = request.POST.get('abstract_book', False)
+        kwarg_author = request.POST.get('author', False)
+        kwarg_review = request.POST.get('review', False)
+        # This exor opertaion brings that if one of abstract_book or author fields is empty and the other one filled
+        # the operation will be done, otherwise will return HTTP_400_BAD_REQUEST
+        if (kwarg_abstractbook == False) ^ (kwarg_author == False):
+            if request.POST.get('abstract_book', False):
+                abstractbook = models.AbstractBook.objects.get(pk=kwarg_abstractbook)
+                data = {
+                    'user': model_to_dict(request_user),
+                    'abstract_book': model_to_dict(abstractbook),
+                    'review': kwarg_review
+                }
+            elif request.POST.get('author', False):
+                author = models.Author.objects.get(pk=kwarg_author)
+                data = {
+                    'user': model_to_dict(request_user),
+                    'author': model_to_dict(author),
+                    'review': kwarg_review
+                }
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        data = {
-            'user': model_to_dict(request_user),
-            'abstract_book': model_to_dict(abstractbook),
-            'review': request.data["review"]
-        }
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 
 
 class ReviewDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -525,10 +547,11 @@ class CommentCreateAPIView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def create(self, request, *args, **kwargs):
+        comment = request.POST.get('comment', False)
         request_user = request.user.userprofileapi
         data = {
             'user': model_to_dict(request_user),
-            'comment': request.data['comment'],
+            'comment': comment,
         }
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -538,14 +561,17 @@ class CommentCreateAPIView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         request_user = self.request.user.userprofileapi
-        if self.request.data["booklist"]:
-            booklist = models.BookList.objects.get(pk=self.request.data["booklist"])
-            serializer.save(user=request_user, booklist=booklist)
-            return
-        elif self.request.data["review"]:
-            review = models.Review.objects.get(pk=self.request.data["review"])
-            serializer.save(user=request_user, rewiew=review)
-            return
+        kwarg_booklist = self.request.POST.get('booklist', False)
+        kwarg_review = self.request.POST.get('review', False)
+        if (kwarg_booklist == False) ^ (kwarg_review == False):
+            if kwarg_booklist:
+                booklist = models.BookList.objects.get(pk=kwarg_booklist)
+                serializer.save(user=request_user, booklist=booklist)
+                return
+            elif kwarg_review:
+                review = models.Review.objects.get(pk=kwarg_review)
+                serializer.save(user=request_user, review=review)
+                return
 
         raise restSerializers.ValidationError("You can comment only for reviews or books")
 
