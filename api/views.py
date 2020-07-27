@@ -286,11 +286,14 @@ class AbstractBookViewSet(mixins.ListDetailSerializerMixin, viewsets.ModelViewSe
 
             try:
                 booklist = models.BookList.objects.get(id=request.data['booklist'])
-                book = models.AbstractBook.objects.get(id=pk)
-                book.book_lists.add(booklist)
-                book.save()
-                response = {'message': 'You added book to the list'}
-                return Response(response, status=status.HTTP_200_OK)
+                if booklist.user == request.user.userprofileapi:
+                    book = models.AbstractBook.objects.get(id=pk)
+                    book.book_lists.add(booklist)
+                    book.save()
+                    response = {'message': 'You added book to the list'}
+                    return Response(response, status=status.HTTP_200_OK)
+                response = {'message': 'Users may change only their own booklists.'}
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
             except:
                 response = {'message': 'Book cannot be added'}
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
@@ -305,11 +308,14 @@ class AbstractBookViewSet(mixins.ListDetailSerializerMixin, viewsets.ModelViewSe
 
             try:
                 booklist = models.BookList.objects.get(id=request.data['booklist'])
-                book = models.AbstractBook.objects.get(id=pk)
-                book.book_lists.remove(booklist)
-                book.save()
-                response = {'message': 'You removed book from the list'}
-                return Response(response, status=status.HTTP_200_OK)
+                if booklist.user == request.user.userprofileapi:
+                    book = models.AbstractBook.objects.get(id=pk)
+                    book.book_lists.remove(booklist)
+                    book.save()
+                    response = {'message': 'You removed book from the list'}
+                    return Response(response, status=status.HTTP_200_OK)
+                response = {'message': 'Users may change only their own booklists.'}
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
             except:
                 response = {'message': 'Book cannot be removed'}
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
