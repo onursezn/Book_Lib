@@ -260,9 +260,9 @@ class AbstractBookListSerializer(serializers.ModelSerializer):
 
     number_of_ratings = serializers.SerializerMethodField()
     avg_rating = serializers.IntegerField(read_only=True)
-    number_of_fans = serializers.SerializerMethodField()
-    number_of_reviews = serializers.SerializerMethodField()
-    number_of_readings = serializers.SerializerMethodField()
+    number_of_fans = serializers.IntegerField(read_only=True)
+    number_of_reviews = serializers.IntegerField(read_only=True)
+    number_of_readings = serializers.IntegerField(read_only=True)
     pop_child_book = BookListSerializer(read_only=True)
     authors = AuthorListSerializer(read_only=True, many=True)
 
@@ -274,26 +274,26 @@ class AbstractBookListSerializer(serializers.ModelSerializer):
     def get_number_of_ratings(self, object):
         return object.ratings.count()
 
-    def get_avg_rating(self, object):
-        count: float = object.ratings.count()
-        values = object.ratings.values_list('stars', flat=True)
-        summation = 0
-        for value in values:
-            summation += value
-        try:
-            a = summation/count
-        except ZeroDivisionError:
-            a = []
-        return a
+    # def get_avg_rating(self, object):
+    #     count: float = object.ratings.count()
+    #     values = object.ratings.values_list('stars', flat=True)
+    #     summation = 0
+    #     for value in values:
+    #         summation += value
+    #     try:
+    #         a = summation/count
+    #     except ZeroDivisionError:
+    #         a = []
+    #     return a
 
-    def get_number_of_fans(self, object):
-        return object.bookLiker.count()
-
-    def get_number_of_reviews(self, object):
-        return object.reviews.count()
-
-    def get_number_of_readings(self, object):
-        return object.reader.count()
+    # def get_number_of_fans(self, object):
+    #     return object.bookLiker.count()
+    #
+    # def get_number_of_reviews(self, object):
+    #     return object.reviews.count()
+    #
+    # def get_number_of_readings(self, object):
+    #     return object.reader.count()
 
     """def get_image(self, object):
         book = object.child_books.all().order_by('-total_vote').first()
