@@ -5,8 +5,9 @@ from rest_framework import filters
 from rest_framework import serializers as restSerializers
 from knox.auth import TokenAuthentication
 from rest_framework.decorators import action
-from django.db.models import Avg
+from django.db.models import Avg, Count
 from django.forms.models import model_to_dict
+from itertools import chain
 
 from . import serializers
 from . import models
@@ -260,7 +261,9 @@ class BookListViewSet(mixins.ListDetailSerializerMixin, viewsets.ModelViewSet):
 
 class AbstractBookViewSet(mixins.ListDetailSerializerMixin, viewsets.ModelViewSet):
 
-    queryset = models.AbstractBook.objects.annotate(avg_rating=Avg('ratings__stars'))
+    queryset = models.AbstractBook.objects.annotate(avg_rating=Avg('ratings__stars'), number_of_readings=Count('reader'),
+                                                    number_of_fans=Count('bookLiker'), number_of_reviews=Count('reviews'),
+                                                    number_of_ratings=Count('ratings'))
     list_serializer_class = serializers.AbstractBookListSerializer
     detail_serializer_class = serializers.AbstractBookDetailSerializer
     permission_classes_by_action = {
@@ -271,6 +274,32 @@ class AbstractBookViewSet(mixins.ListDetailSerializerMixin, viewsets.ModelViewSe
         'partial_update': [IsAdminUser],
         'destroy': [IsAdminUser],
     }
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        search_word = request.query_params.get('search_word', None)
+        category = request.query_params.get('category', None)
+        sort = request.query_params.get('sort', None)
+
+        if search_word is not None:
+            queryset_by_name = queryset.filter(name__contains=search_word)
+            queryset_by_author = queryset.filter(authors__name__contains=search_word)
+            queryset = list(chain(queryset_by_name, queryset_by_author))
+
+        if category is not None:
+            queryset = queryset.filter(category__name=category)
+
+        if sort is not None:
+            queryset = queryset.order_by('-' + sort)
+
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def get_permissions(self):
         try:
