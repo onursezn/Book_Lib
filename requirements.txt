@@ -16,7 +16,7 @@ django-rest-knox==4.1.0
 django-rest-passwordreset==1.1.0
 djangorestframework==3.11.0
 idna==2.9
-numpy==1.18.4
+numpy==1.22.0
 oauthlib==3.1.0
 pandas==1.0.3
 Pillow==7.1.1
